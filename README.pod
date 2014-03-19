@@ -1,0 +1,63 @@
+=pod
+
+=head1 NAME
+
+Munin::Plugin::PreFetch - Prefetch results for long running munin plugins
+
+=head1 SYNOPSIS
+
+  # in /etc/munin/plugins/fancyplugin
+  use parent 'Munin::Plugin::PreFetch';
+  sub config {
+  	print "... config ... ";
+	return;
+  }
+  sub prefetch {
+  	print long_running_call();
+	return;	
+  }
+  __PACKAGE__->dispatch();
+  __END__
+
+  $ munin-run fancyplugin prefetch
+  $ munin-run fancyplugin
+
+=head1 DESCRIPTION
+
+When using its default values munin will close the connection after
+20 seconds without any activity. So if one of your modules take a few
+seconds to run, you can easily run into this threshold and get graphs
+with gaps in them. Sure, you can manuelly set the timeout to a higher
+value, but what about plugins that takes minutes to return results?
+
+With Munin::Plugin::PreFetch you can call your plugin for example via cron. It
+will run the necessary code and write it to a temparory file. When the munin
+master node connects and tries to fetch the plugin data, the content of this
+file will be returned.
+
+You have to provide the function I<config> and I<prefetch> that should
+just print to stdout. If your using magic markers, you can optionally
+provide the additional functions I<autoconf>, I<suggests> or I<smtpconf>.
+
+=head1 ENVIRONMENT
+
+=over
+
+=item MUNIN_PLUGSTATE
+
+The directory where the prefetched output is saved in. This variable is
+automatically set for your when you run your plugin via munin-run.
+
+=back
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2014 Mario Domgoergen
+
+This library is free software; you may redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=head1 AUTHOR
+
+Mario Domgoergen L<E<lt>mario@domgoergen.comE<gt>>
+
